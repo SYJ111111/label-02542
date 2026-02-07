@@ -1,0 +1,125 @@
+@use './variables' as *;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #app {
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  font-size: 14px;
+  color: $text-primary;
+  background-color: $bg-color;
+}
+
+// 自定义 Element Plus 主题
+:root {
+  --el-color-primary: #{$primary-color};
+  --el-color-success: #{$success-color};
+  --el-color-warning: #{$warning-color};
+  --el-color-danger: #{$danger-color};
+  --el-border-radius-base: #{$border-radius};
+}
+
+// 页面容器
+.page-container {
+  padding: $spacing-lg;
+}
+
+// 搜索区域
+.search-area {
+  background: $card-bg;
+  padding: $spacing-md $spacing-lg;
+  border-radius: $border-radius;
+  box-shadow: $box-shadow;
+  margin-bottom: $spacing-md;
+
+  :deep(.el-form--inline .el-form-item) {
+    margin-bottom: $spacing-xs;
+    margin-right: $spacing-md;
+  }
+}
+
+// 表格卡片
+.table-card {
+  background: $card-bg;
+  padding: $spacing-lg;
+  border-radius: $border-radius;
+  box-shadow: $box-shadow;
+}
+
+// 表格工具栏
+.table-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-md;
+
+  .toolbar-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: $text-primary;
+  }
+}
+
+// 分页区域
+.pagination-area {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: $spacing-md;
+}
+
+// 对话框表单
+.dialog-form {
+  padding: $spacing-md $spacing-lg 0;
+}
+
+// 对话框内容与标题间距
+:deep(.el-dialog__body) {
+  padding-top: $spacing-md;
+}
+
+// 统计卡片
+.stat-card {
+  background: $card-bg;
+  border-radius: $border-radius;
+  box-shadow: $box-shadow;
+  padding: $spacing-lg;
+  transition: box-shadow 0.3s ease;
+
+  &:hover {
+    box-shadow: $box-shadow-hover;
+  }
+
+  .stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: $text-primary;
+    margin-bottom: $spacing-xs;
+  }
+
+  .stat-label {
+    font-size: 14px;
+    color: $text-secondary;
+  }
+
+  .stat-icon {
+    font-size: 40px;
+    opacity: 0.2;
+  }
+}
+
+// 滚动条美化
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: #C0C4CC;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
