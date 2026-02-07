@@ -55,12 +55,21 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   document.title = (to.meta.title || '健身房管理系统') + ' - 健身房管理系统'
   const token = localStorage.getItem('token')
-  if (to.path !== '/login' && !token) {
-    next('/login')
-  } else if (to.path === '/login' && token) {
-    next('/')
+  
+  if (to.path === '/login') {
+    // 已登录用户访问登录页，重定向到首页
+    if (token) {
+      next('/')
+    } else {
+      next()
+    }
   } else {
-    next()
+    // 未登录用户访问其他页面，重定向到登录页
+    if (!token) {
+      next('/login')
+    } else {
+      next()
+    }
   }
 })
 

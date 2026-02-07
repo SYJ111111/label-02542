@@ -101,16 +101,19 @@ const currentTitle = computed(() => {
   return item ? item.title : ''
 })
 
-const handleCommand = (command) => {
+const handleCommand = async (command) => {
   if (command === 'logout') {
-    ElMessageBox.confirm('确认退出登录？', '提示', {
-      type: 'warning',
-      confirmButtonText: '确认',
-      cancelButtonText: '取消'
-    }).then(() => {
-      userStore.logout()
+    try {
+      await ElMessageBox.confirm('确认退出登录？', '提示', {
+        type: 'warning',
+        confirmButtonText: '确认',
+        cancelButtonText: '取消'
+      })
+      await userStore.logout()
       router.push('/login')
-    }).catch(() => {})
+    } catch {
+      // 用户取消
+    }
   }
 }
 </script>

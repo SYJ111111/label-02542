@@ -55,7 +55,7 @@ const handleLogin = async () => {
   try {
     await userStore.doLogin(form)
     ElMessage.success('登录成功')
-    router.push('/')
+    router.replace('/')
   } catch (e) {
     // 错误已在拦截器中处理
   } finally {
