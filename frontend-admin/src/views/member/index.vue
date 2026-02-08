@@ -137,12 +137,18 @@ const rules = {
 
 const loadData = async () => {
   loading.value = true
+  const startTime = Date.now()
   try {
     const res = await getMemberPage({ pageNum: pageNum.value, pageSize: pageSize.value, ...queryForm })
     tableData.value = res.data.records
     total.value = Number(res.data.total)
   } finally {
-    loading.value = false
+    const elapsed = Date.now() - startTime
+    if (elapsed < 300) {
+      setTimeout(() => { loading.value = false }, 300 - elapsed)
+    } else {
+      loading.value = false
+    }
   }
 }
 

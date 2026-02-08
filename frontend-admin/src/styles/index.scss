@@ -36,9 +36,18 @@ html, body, #app {
   box-shadow: $box-shadow;
   margin-bottom: $spacing-md;
 
-  :deep(.el-form--inline .el-form-item) {
+  .el-form--inline .el-form-item {
     margin-bottom: $spacing-xs;
     margin-right: $spacing-md;
+  }
+
+  // 固定输入框宽度，防止 focus/hover 时宽度变化
+  .el-input {
+    width: 180px !important;
+  }
+
+  .el-select {
+    width: 150px !important;
   }
 }
 
