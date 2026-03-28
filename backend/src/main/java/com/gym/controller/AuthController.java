@@ -37,7 +37,7 @@ public class AuthController {
         // 解码前端 Base64 加密的密码
         String rawPassword;
         try {
-            rawPassword = new String(Base64.getDecoder().decode(dto.getPassword()), StandardCharsets.UTF_8);
+            rawPassword = dto.getPassword();
         } catch (Exception e) {
             rawPassword = dto.getPassword();
         }
