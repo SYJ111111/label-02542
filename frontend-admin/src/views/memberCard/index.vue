@@ -80,10 +80,23 @@
           </el-select>
         </el-form-item>
         <el-form-item label="开始日期" prop="startDate">
-          <el-date-picker v-model="form.startDate" type="date" placeholder="选择开始日期" value-format="YYYY-MM-DD" style="width: 100%;" @change="onStartDateChange" />
+          <el-date-picker v-model="form.startDate" type="date" placeholder="选择开始日期" value-format="YYYY-MM-DD" :disabled-date="(date) => {
+            const today = new Date()
+            today.setHours(0, 0, 0, 0)
+            return date < today
+          }" style="width: 100%;" @change="onStartDateChange" />
         </el-form-item>
         <el-form-item label="结束日期" prop="endDate">
-          <el-date-picker v-model="form.endDate" type="date" placeholder="选择结束日期" value-format="YYYY-MM-DD" style="width: 100%;" />
+          <el-date-picker v-model="form.endDate" type="date" placeholder="选择结束日期" value-format="YYYY-MM-DD" :disabled-date="(date) => {
+            if (form.startDate) {
+              const startDate = new Date(form.startDate)
+              startDate.setHours(0, 0, 0, 0)
+              return date < startDate
+            }
+            const today = new Date()
+            today.setHours(0, 0, 0, 0)
+            return date < today
+          }" style="width: 100%;" />
         </el-form-item>
         <el-form-item label="剩余次数" v-if="selectedCardType && selectedCardType.type === 1">
           <el-input-number v-model="form.remainingCount" :min="0" :max="9999" style="width: 100%;" />
@@ -136,6 +149,22 @@ const form = reactive({
   memberId: null, cardTypeId: null, startDate: '', endDate: '', remainingCount: null, amountPaid: 0, status: 1
 })
 
+const validateStartDate = (rule, value, callback) => {
+  if (!value) {
+    callback(new Error('请选择开始日期'))
+  } else {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const selectedDate = new Date(value)
+    selectedDate.setHours(0, 0, 0, 0)
+    if (selectedDate < today) {
+      callback(new Error('开始日期不能小于当前日期'))
+    } else {
+      callback()
+    }
+  }
+}
+
 const validateEndDate = (rule, value, callback) => {
   if (!value) {
     callback(new Error('请选择结束日期'))
@@ -149,7 +178,7 @@ const validateEndDate = (rule, value, callback) => {
 const rules = {
   memberId: [{ required: true, message: '请选择会员', trigger: 'change' }],
   cardTypeId: [{ required: true, message: '请选择卡种', trigger: 'change' }],
-  startDate: [{ required: true, message: '请选择开始日期', trigger: 'change' }],
+  startDate: [{ required: true, validator: validateStartDate, trigger: 'change' }],
   endDate: [{ required: true, validator: validateEndDate, trigger: 'change' }],
   amountPaid: [{ required: true, message: '请输入实付金额', trigger: 'blur' }]
 }
@@ -167,6 +196,11 @@ const onCardTypeChange = (val) => {
     } else {
       form.remainingCount = null
     }
+    // 如果开始日期为空，自动设置为当前日期
+    if (!form.startDate) {
+      const today = new Date()
+      form.startDate = today.toISOString().split('T')[0]
+    }
     // 自动计算结束日期
     if (form.startDate && ct.duration) {
       const start = new Date(form.startDate)
@@ -180,6 +214,13 @@ const onStartDateChange = () => {
   // 开始日期变化时，重新验证结束日期
   if (form.endDate) {
     formRef.value?.validateField('endDate')
+  }
+  // 如果已经选择了卡种，重新计算结束日期
+  const ct = cardTypeList.value.find(c => c.id === form.cardTypeId)
+  if (ct && ct.duration) {
+    const start = new Date(form.startDate)
+    start.setDate(start.getDate() + ct.duration)
+    form.endDate = start.toISOString().split('T')[0]
   }
 }
 

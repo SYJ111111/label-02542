@@ -54,9 +54,16 @@ public class MemberCardController {
     }
 
     private void validateDateRange(MemberCard memberCard) {
-        if (memberCard.getStartDate() != null && memberCard.getEndDate() != null) {
-            if (!memberCard.getEndDate().isAfter(memberCard.getStartDate())) {
-                throw new BusinessException("结束日期必须大于开始日期");
+        if (memberCard.getStartDate() != null) {
+            // 开始日期不能小于当前日期
+            if (memberCard.getStartDate().isBefore(java.time.LocalDate.now())) {
+                throw new BusinessException("开始日期不能小于当前日期");
+            }
+            // 结束日期不能小于开始日期
+            if (memberCard.getEndDate() != null) {
+                if (!memberCard.getEndDate().isAfter(memberCard.getStartDate())) {
+                    throw new BusinessException("结束日期必须大于开始日期");
+                }
             }
         }
     }
