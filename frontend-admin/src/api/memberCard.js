@@ -19,3 +19,7 @@ export function updateMemberCard(id, data) {
 export function deleteMemberCard(id) {
   return request.delete(`/member-cards/${id}`)
 }
+
+export function getDateRangeByCardType(cardTypeId) {
+  return request.get(`/member-cards/date-range/${cardTypeId}`)
+}

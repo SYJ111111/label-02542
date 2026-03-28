@@ -109,7 +109,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, nextTick } from 'vue'
-import { getMemberCardPage, createMemberCard, updateMemberCard, deleteMemberCard } from '@/api/memberCard'
+import { getMemberCardPage, createMemberCard, updateMemberCard, deleteMemberCard, getDateRangeByCardType } from '@/api/memberCard'
 import { getMemberPage } from '@/api/member'
 import { getCardTypeList } from '@/api/cardType'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -136,6 +136,21 @@ const form = reactive({
   memberId: null, cardTypeId: null, startDate: '', endDate: '', remainingCount: null, amountPaid: 0, status: 1
 })
 
+const validateStartDate = (rule, value, callback) => {
+  if (!value) {
+    callback(new Error('请选择开始日期'))
+  } else {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const selectedDate = new Date(value)
+    if (selectedDate < today) {
+      callback(new Error('开始日期不能小于当前日期'))
+    } else {
+      callback()
+    }
+  }
+}
+
 const validateEndDate = (rule, value, callback) => {
   if (!value) {
     callback(new Error('请选择结束日期'))
@@ -149,7 +164,7 @@ const validateEndDate = (rule, value, callback) => {
 const rules = {
   memberId: [{ required: true, message: '请选择会员', trigger: 'change' }],
   cardTypeId: [{ required: true, message: '请选择卡种', trigger: 'change' }],
-  startDate: [{ required: true, message: '请选择开始日期', trigger: 'change' }],
+  startDate: [{ required: true, validator: validateStartDate, trigger: 'change' }],
   endDate: [{ required: true, validator: validateEndDate, trigger: 'change' }],
   amountPaid: [{ required: true, message: '请输入实付金额', trigger: 'blur' }]
 }
@@ -158,7 +173,7 @@ const selectedCardType = computed(() => {
   return cardTypeList.value.find(ct => ct.id === form.cardTypeId)
 })
 
-const onCardTypeChange = (val) => {
+const onCardTypeChange = async (val) => {
   const ct = cardTypeList.value.find(c => c.id === val)
   if (ct) {
     form.amountPaid = ct.price
@@ -167,17 +182,34 @@ const onCardTypeChange = (val) => {
     } else {
       form.remainingCount = null
     }
-    // 自动计算结束日期
-    if (form.startDate && ct.duration) {
-      const start = new Date(form.startDate)
-      start.setDate(start.getDate() + ct.duration)
-      form.endDate = start.toISOString().split('T')[0]
+    // 自动获取推荐的日期范围
+    try {
+      const res = await getDateRangeByCardType(val)
+      form.startDate = res.data.startDate
+      form.endDate = res.data.endDate
+    } catch (e) {
+      // 如果API调用失败，使用前端计算
+      if (ct.duration) {
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        form.startDate = today.toISOString().split('T')[0]
+        const end = new Date(today)
+        end.setDate(end.getDate() + ct.duration)
+        form.endDate = end.toISOString().split('T')[0]
+      }
     }
   }
 }
 
 const onStartDateChange = () => {
-  // 开始日期变化时，重新验证结束日期
+  // 开始日期变化时，根据卡种自动重新计算结束日期
+  const ct = cardTypeList.value.find(c => c.id === form.cardTypeId)
+  if (form.startDate && ct && ct.duration) {
+    const start = new Date(form.startDate)
+    start.setDate(start.getDate() + ct.duration)
+    form.endDate = start.toISOString().split('T')[0]
+  }
+  // 重新验证结束日期
   if (form.endDate) {
     formRef.value?.validateField('endDate')
   }

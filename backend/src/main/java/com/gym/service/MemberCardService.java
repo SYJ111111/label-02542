@@ -12,6 +12,7 @@ import com.gym.mapper.MemberMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -95,5 +96,30 @@ public class MemberCardService extends ServiceImpl<MemberCardMapper, MemberCard>
         return all.stream()
                 .map(mc -> mc.getAmountPaid() != null ? mc.getAmountPaid() : java.math.BigDecimal.ZERO)
                 .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+    }
+
+    /**
+     * 根据卡种自动计算结束日期
+     */
+    private void autoCalculateEndDate(MemberCard memberCard) {
+        if (memberCard.getCardTypeId() != null && memberCard.getStartDate() != null) {
+            CardType cardType = cardTypeMapper.selectById(memberCard.getCardTypeId());
+            if (cardType != null && cardType.getDuration() != null) {
+                LocalDate endDate = memberCard.getStartDate().plusDays(cardType.getDuration());
+                memberCard.setEndDate(endDate);
+            }
+        }
+    }
+
+    @Override
+    public boolean save(MemberCard entity) {
+        autoCalculateEndDate(entity);
+        return super.save(entity);
+    }
+
+    @Override
+    public boolean updateById(MemberCard entity) {
+        autoCalculateEndDate(entity);
+        return super.updateById(entity);
     }
 }

@@ -4,11 +4,17 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.gym.annotation.Log;
 import com.gym.common.BusinessException;
 import com.gym.common.Result;
+import com.gym.entity.CardType;
 import com.gym.entity.MemberCard;
+import com.gym.service.CardTypeService;
 import com.gym.service.MemberCardService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/member-cards")
@@ -16,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 public class MemberCardController {
 
     private final MemberCardService memberCardService;
+    private final CardTypeService cardTypeService;
 
     @GetMapping
     public Result<Page<MemberCard>> page(
@@ -36,6 +43,20 @@ public class MemberCardController {
         return Result.success(memberCard);
     }
 
+    @GetMapping("/date-range/{cardTypeId}")
+    public Result<Map<String, LocalDate>> getDateRangeByCardType(@PathVariable Long cardTypeId) {
+        CardType cardType = cardTypeService.getById(cardTypeId);
+        if (cardType == null) {
+            throw new BusinessException("卡种不存在");
+        }
+        LocalDate startDate = LocalDate.now();
+        LocalDate endDate = startDate.plusDays(cardType.getDuration());
+        Map<String, LocalDate> dateRange = new HashMap<>();
+        dateRange.put("startDate", startDate);
+        dateRange.put("endDate", endDate);
+        return Result.success(dateRange);
+    }
+
     @PostMapping
     @Log(module = "开卡管理", action = "新增开卡")
     public Result<Void> create(@Valid @RequestBody MemberCard memberCard) {
@@ -54,6 +75,11 @@ public class MemberCardController {
     }
 
     private void validateDateRange(MemberCard memberCard) {
+        if (memberCard.getStartDate() != null) {
+            if (memberCard.getStartDate().isBefore(java.time.LocalDate.now())) {
+                throw new BusinessException("开始日期不能小于当前日期");
+            }
+        }
         if (memberCard.getStartDate() != null && memberCard.getEndDate() != null) {
             if (!memberCard.getEndDate().isAfter(memberCard.getStartDate())) {
                 throw new BusinessException("结束日期必须大于开始日期");
